@@ -16,6 +16,11 @@ def reporters_metadata():
 
 
 @pytest.fixture
+def jurisdictions_metadata():
+    return load_fixture("JurisdictionsMetadata.json")
+
+
+@pytest.fixture
 def bur_volumes_metadata():
     return load_fixture("bur_VolumesMetadata.json")
 
@@ -26,7 +31,7 @@ def bur_cases_metadata():
 
 
 @pytest.fixture
-def fixture_fetch_json(reporters_metadata, bur_volumes_metadata, bur_cases_metadata):
+def fixture_fetch_json(reporters_metadata, jurisdictions_metadata, bur_volumes_metadata, bur_cases_metadata):
     """A fetch_json callable backed by fixtures — no network access.
 
     Raises on any URL the tests didn't anticipate, so an accidental live
@@ -36,6 +41,8 @@ def fixture_fetch_json(reporters_metadata, bur_volumes_metadata, bur_cases_metad
     def fetch(url: str):
         if url.endswith("/ReportersMetadata.json"):
             return reporters_metadata
+        if url.endswith("/JurisdictionsMetadata.json"):
+            return jurisdictions_metadata
         if url.endswith("/bur/VolumesMetadata.json"):
             return bur_volumes_metadata
         if url.endswith("/bur/1/CasesMetadata.json"):

@@ -26,15 +26,20 @@ class RemoteFile:
     format: str  # one of layout.ALL_FORMATS, or "metadata"
 
 
+def reporter_in_jurisdiction(reporter: Reporter, jurisdiction: str) -> bool:
+    """Match a reporter against a jurisdiction's short or long name, case-insensitively.
+
+    Shared with `list-reporters --jurisdiction` so browsing and selecting agree
+    on what counts as a match.
+    """
+    code = jurisdiction.strip().lower()
+    return any((j.name or "").lower() == code or (j.name_long or "").lower() == code for j in reporter.jurisdictions)
+
+
 def _select_reporters(selection: Selection, reporters: list[Reporter]) -> list[Reporter]:
     matched = reporters
     if selection.jurisdiction is not None:
-        code = selection.jurisdiction.strip().lower()
-        matched = [
-            r
-            for r in matched
-            if any((j.name or "").lower() == code or (j.name_long or "").lower() == code for j in r.jurisdictions)
-        ]
+        matched = [r for r in matched if reporter_in_jurisdiction(r, selection.jurisdiction)]
     if selection.reporter is not None and selection.reporter != "all":
         target = selection.reporter.strip().lower()
         matched = [r for r in matched if r.slug.lower() == target or str(r.id) == selection.reporter]

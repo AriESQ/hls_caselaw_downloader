@@ -53,6 +53,40 @@ class Reporter:
 
 
 @dataclass(frozen=True)
+class JurisdictionSummary:
+    """A top-level entry of JurisdictionsMetadata.json.
+
+    Distinct from `Jurisdiction`, which is the thinner shape CAP nests inside
+    each reporter. This one carries the corpus-size counts, which is what makes
+    it useful for sizing a download before starting one.
+    """
+
+    id: int | None
+    slug: str | None
+    name: str | None
+    name_long: str | None
+    reporter_count: int | None
+    volume_count: int | None
+    case_count: int | None
+    page_count: int | None
+    reporter_slugs: tuple[str, ...] = field(default_factory=tuple)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> JurisdictionSummary:
+        return cls(
+            id=d.get("id"),
+            slug=d.get("slug"),
+            name=d.get("name"),
+            name_long=d.get("name_long"),
+            reporter_count=d.get("reporter_count"),
+            volume_count=d.get("volume_count"),
+            case_count=d.get("case_count"),
+            page_count=d.get("page_count"),
+            reporter_slugs=tuple(r["slug"] for r in d.get("reporters", []) if r.get("slug")),
+        )
+
+
+@dataclass(frozen=True)
 class Volume:
     volume_number: str
     reporter_slug: str
@@ -98,6 +132,10 @@ def parse_volumes(raw: list[dict[str, Any]]) -> list[Volume]:
     return [Volume.from_dict(d) for d in raw]
 
 
+def parse_jurisdictions(raw: list[dict[str, Any]]) -> list[JurisdictionSummary]:
+    return [JurisdictionSummary.from_dict(d) for d in raw]
+
+
 def parse_cases(raw: list[dict[str, Any]]) -> list[CaseEntry]:
     return [CaseEntry.from_dict(d) for d in raw]
 
@@ -114,11 +152,13 @@ class RemoteIndex:
     def __init__(self, fetch_json: FetchJson):
         self._fetch_json = fetch_json
         self._reporters: list[Reporter] | None = None
+        self._jurisdictions: list[JurisdictionSummary] | None = None
         self._reporter_volumes: dict[str, list[Volume]] = {}
         self._volume_cases: dict[tuple[str, str], list[CaseEntry]] = {}
 
     def clear_cache(self) -> None:
         self._reporters = None
+        self._jurisdictions = None
         self._reporter_volumes.clear()
         self._volume_cases.clear()
 
@@ -127,6 +167,12 @@ class RemoteIndex:
             url = layout.root_metadata_url("ReportersMetadata.json")
             self._reporters = parse_reporters(self._fetch_json(url))
         return self._reporters
+
+    def get_jurisdictions(self) -> list[JurisdictionSummary]:
+        if self._jurisdictions is None:
+            url = layout.root_metadata_url("JurisdictionsMetadata.json")
+            self._jurisdictions = parse_jurisdictions(self._fetch_json(url))
+        return self._jurisdictions
 
     def get_reporter_volumes(self, reporter_slug: str) -> list[Volume]:
         if reporter_slug not in self._reporter_volumes:

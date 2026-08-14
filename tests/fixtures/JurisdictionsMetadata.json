@@ -1,0 +1,46 @@
+[
+  {
+    "id": 30,
+    "slug": "cal",
+    "name": "Cal.",
+    "name_long": "California",
+    "reporters": [
+      {
+        "id": 414,
+        "slug": "cal",
+        "full_name": "California Reports"
+      },
+      {
+        "id": 417,
+        "slug": "cal-2d",
+        "full_name": "California Reports"
+      }
+    ],
+    "case_count": 144162,
+    "volume_count": 1398,
+    "reporter_count": 19,
+    "page_count": 1337352
+  },
+  {
+    "id": 46,
+    "slug": "wis",
+    "name": "Wis.",
+    "name_long": "Wisconsin",
+    "reporters": [
+      {
+        "id": 1070,
+        "slug": "bur",
+        "full_name": "Burnett"
+      },
+      {
+        "id": 654,
+        "slug": "chand",
+        "full_name": "Chandler"
+      }
+    ],
+    "case_count": 50470,
+    "volume_count": 690,
+    "reporter_count": 7,
+    "page_count": 502214
+  }
+]

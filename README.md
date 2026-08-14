@@ -59,11 +59,67 @@ uv run caselaw-mirror sync --config config/minimal.yaml
 | `status` | Summarize manifest state: files tracked, per-status counts, last change. |
 | `manifest export --to X.jsonl` | Write a sorted, diffable JSONL snapshot of the manifest. |
 | `manifest import --from X.jsonl` | Load a JSONL snapshot back into the SQLite shards. |
-| `list-reporters` | Fetch and print all ~400 reporters. |
+| `list-jurisdictions` | Print all 61 jurisdictions with reporter/volume/case counts. |
+| `list-reporters` | Print all ~400 reporters; `--jurisdiction X` narrows to one. |
 
 Common flags on every command: `--config`, `--output-dir` and `--manifest-dir` (override
 the config's paths, so one config works both in-container and locally), `--verbose`,
 `--json-logs`.
+
+## Browsing: deciding what to download
+
+Nothing is downloaded by default and there is no implicit "everything", so the first
+question is always *what exists*. Two read-only commands answer it; both just fetch CAP's
+published index files and print them.
+
+Start at the jurisdiction level to size the corpus:
+
+```bash
+uv run caselaw-mirror list-jurisdictions
+```
+```
+NAME         LONG NAME                    REPORTERS   VOLUMES      CASES
+Ala.         Alabama                             10     1,362    133,318
+Alaska       Alaska                               4     1,096     10,749
+Ariz.        Arizona                              4       307     28,481
+...
+```
+
+The `NAME` column is exactly what `--jurisdiction` / `jurisdiction:` matches (the long name
+works too, case-insensitively). Then drill into the reporters of one:
+
+```bash
+uv run caselaw-mirror list-reporters --jurisdiction "Wis."
+```
+```
+bur                  1842-1843  Burnett
+chand                1849-1850  Chandler
+nw2d                 1952-2019  North Western Reporter 2d
+pin                  1839-1852  Pinney
+wis                  1853-1957  Wisconsin Reports
+wis-2d               1957-2017  Wisconsin Reports Second
+```
+
+The first column is the reporter slug for `--reporter`. Without `--jurisdiction`, all ~400
+reporters print with an added jurisdiction column (reporters can span several — regional
+reporters like `a2d` cover many states). An unrecognized jurisdiction name exits `2`
+rather than printing an empty list.
+
+Below the reporter level there is no dedicated command; read the volume index directly:
+
+```bash
+curl -s https://static.case.law/wis/VolumesMetadata.json \
+  | jq -r '.[] | "\(.volume_number)\t\(.start_year)-\(.end_year)"'
+```
+
+Finally, confirm the size of a candidate download before starting it — `plan` resolves the
+selection and prints the exact file list without touching the network beyond metadata, and
+`sync --dry-run` reports what would change without writing:
+
+```bash
+uv run caselaw-mirror plan --reporter wis --formats json | wc -l
+uv run caselaw-mirror sync --jurisdiction "Wis." --formats tar --dry-run
+```
 
 ## Targeting
 
@@ -73,7 +129,7 @@ the config's selections; `--only` replaces them instead).
 | Key / flag | Meaning |
 | --- | --- |
 | `reporter` | Reporter slug or id, or `all`. Never an implicit default — "everything" must be spelled out. |
-| `jurisdiction` | e.g. `Cal.`, matched against each reporter's jurisdictions. |
+| `jurisdiction` | e.g. `Cal.` or `California`, matched against each reporter's jurisdictions. See [Browsing](#browsing-deciding-what-to-download). |
 | `volumes` | `"all"`, `"5"`, `"1-50"`, or `"1,3,5-9"`. |
 | `years` | `"1850-1900"` — matched against each volume's year range. |
 | `cases` | Exact case-file stems, e.g. `["0009-01"]`, to target below the volume level. |

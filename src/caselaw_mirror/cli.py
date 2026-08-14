@@ -18,7 +18,7 @@ from caselaw_mirror.downloader import sync_files, verify_local_files
 from caselaw_mirror.http_client import HttpClient
 from caselaw_mirror.logging_setup import configure_logging
 from caselaw_mirror.manifest import ShardedManifest, export_jsonl, import_jsonl
-from caselaw_mirror.planner import RemoteFile, plan_all
+from caselaw_mirror.planner import RemoteFile, plan_all, reporter_in_jurisdiction
 from caselaw_mirror.remote_index import RemoteIndex
 from caselaw_mirror.selection import Selection, SelectionError, resolve_selections
 
@@ -208,9 +208,52 @@ def cmd_list_reporters(args: argparse.Namespace) -> int:
     finally:
         client.close()
 
+    total = len(reporters)
+    if args.jurisdiction is not None:
+        reporters = [r for r in reporters if reporter_in_jurisdiction(r, args.jurisdiction)]
+        if not reporters:
+            logger.error(
+                "No reporter matches jurisdiction %r — run `list-jurisdictions` for valid names",
+                args.jurisdiction,
+            )
+            return exit_codes.CONFIG_ERROR
+
     for r in sorted(reporters, key=lambda r: r.slug):
-        print(f"{r.slug:20s} {r.start_year}-{r.end_year}  {r.full_name}")
-    print(f"\n{len(reporters)} reporters", file=sys.stderr)
+        line = f"{r.slug:20s} {r.start_year}-{r.end_year}  {r.full_name}"
+        if args.jurisdiction is None:
+            codes = ",".join(sorted({j.name for j in r.jurisdictions if j.name}))
+            line = f"{r.slug:20s} {r.start_year}-{r.end_year}  {codes:24s}  {r.full_name}"
+        print(line)
+
+    if args.jurisdiction is None:
+        print(f"\n{total} reporters", file=sys.stderr)
+    else:
+        print(f"\n{len(reporters)} of {total} reporters in {args.jurisdiction!r}", file=sys.stderr)
+    return exit_codes.OK
+
+
+def cmd_list_jurisdictions(args: argparse.Namespace) -> int:
+    config = _load_config_or_default(args)
+    client = HttpClient(config.http, requests_per_second=config.concurrency.requests_per_second)
+    try:
+        index = RemoteIndex(client.get_json)
+        jurisdictions = index.get_jurisdictions()
+    finally:
+        client.close()
+
+    def num(n: int | None) -> str:
+        return f"{n:,}" if n is not None else "-"
+
+    print(f"{'NAME':12s} {'LONG NAME':28s} {'REPORTERS':>9s} {'VOLUMES':>9s} {'CASES':>10s}")
+    for j in sorted(jurisdictions, key=lambda j: (j.name or "")):
+        print(
+            f"{j.name or '-':12s} {j.name_long or '-':28s} "
+            f"{num(j.reporter_count):>9s} {num(j.volume_count):>9s} {num(j.case_count):>10s}"
+        )
+    print(
+        f"\n{len(jurisdictions)} jurisdictions — the NAME column is what `--jurisdiction` matches",
+        file=sys.stderr,
+    )
     return exit_codes.OK
 
 
@@ -253,7 +296,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_list = subparsers.add_parser("list-reporters", help="Fetch and print ReportersMetadata.json")
     _add_common_args(p_list)
+    p_list.add_argument(
+        "--jurisdiction",
+        default=None,
+        help="Show only reporters in this jurisdiction (short or long name, e.g. 'Cal.')",
+    )
     p_list.set_defaults(func=cmd_list_reporters)
+
+    p_listj = subparsers.add_parser(
+        "list-jurisdictions", help="Fetch and print JurisdictionsMetadata.json with corpus sizes"
+    )
+    _add_common_args(p_listj)
+    p_listj.set_defaults(func=cmd_list_jurisdictions)
 
     return parser
 

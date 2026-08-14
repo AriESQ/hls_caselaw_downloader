@@ -269,7 +269,52 @@ class TestListReporters:
             responses.GET, "https://static.case.law/ReportersMetadata.json", json=reporters_metadata
         )
         assert main(["list-reporters"]) == exit_codes.OK
+        out = capsys.readouterr().out
+        assert "bur" in out
+        # unfiltered listing carries a jurisdiction column
+        assert "Wis." in out
+
+    @responses.activate
+    def test_jurisdiction_filter(self, reporters_metadata, capsys):
+        responses.add(
+            responses.GET, "https://static.case.law/ReportersMetadata.json", json=reporters_metadata
+        )
+        assert main(["list-reporters", "--jurisdiction", "Wis."]) == exit_codes.OK
+        captured = capsys.readouterr()
+        assert "bur" in captured.out
+        assert "cal" not in captured.out
+        assert "1 of 3 reporters" in captured.err
+
+    @responses.activate
+    def test_jurisdiction_filter_accepts_long_name(self, reporters_metadata, capsys):
+        responses.add(
+            responses.GET, "https://static.case.law/ReportersMetadata.json", json=reporters_metadata
+        )
+        assert main(["list-reporters", "--jurisdiction", "wisconsin"]) == exit_codes.OK
         assert "bur" in capsys.readouterr().out
+
+    @responses.activate
+    def test_unknown_jurisdiction_is_a_config_error(self, reporters_metadata):
+        responses.add(
+            responses.GET, "https://static.case.law/ReportersMetadata.json", json=reporters_metadata
+        )
+        assert main(["list-reporters", "--jurisdiction", "Mars"]) == exit_codes.CONFIG_ERROR
+
+
+class TestListJurisdictions:
+    @responses.activate
+    def test_prints_jurisdictions_with_counts(self, jurisdictions_metadata, capsys):
+        responses.add(
+            responses.GET,
+            "https://static.case.law/JurisdictionsMetadata.json",
+            json=jurisdictions_metadata,
+        )
+        assert main(["list-jurisdictions"]) == exit_codes.OK
+        captured = capsys.readouterr()
+        assert "Cal." in captured.out
+        assert "California" in captured.out
+        assert "144,162" in captured.out  # case_count, thousands-separated
+        assert "2 jurisdictions" in captured.err
 
 
 class TestDryRun:

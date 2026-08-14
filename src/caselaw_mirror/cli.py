@@ -17,7 +17,7 @@ from caselaw_mirror.config import Config, ConfigError, load_config
 from caselaw_mirror.downloader import sync_files, verify_local_files
 from caselaw_mirror.http_client import HttpClient
 from caselaw_mirror.logging_setup import configure_logging
-from caselaw_mirror.manifest import ShardedManifest
+from caselaw_mirror.manifest import ShardedManifest, export_jsonl, import_jsonl
 from caselaw_mirror.planner import RemoteFile, plan_all
 from caselaw_mirror.remote_index import RemoteIndex
 from caselaw_mirror.selection import Selection, SelectionError, resolve_selections
@@ -188,6 +188,17 @@ def cmd_status(args: argparse.Namespace) -> int:
     return exit_codes.OK
 
 
+def cmd_manifest(args: argparse.Namespace) -> int:
+    config = _load_config_or_default(args)
+    if args.manifest_command == "export":
+        count = export_jsonl(config.manifest.dir, args.to)
+        logger.info("exported %d manifest entries to %s", count, args.to)
+    else:
+        count = import_jsonl(getattr(args, "from"), config.manifest.dir)
+        logger.info("imported %d manifest entries into %s", count, config.manifest.dir)
+    return exit_codes.OK
+
+
 def cmd_list_reporters(args: argparse.Namespace) -> int:
     config = _load_config_or_default(args)
     client = HttpClient(config.http, requests_per_second=config.concurrency.requests_per_second)
@@ -226,6 +237,19 @@ def build_parser() -> argparse.ArgumentParser:
     p_status = subparsers.add_parser("status", help="Summarize manifest state")
     _add_common_args(p_status)
     p_status.set_defaults(func=cmd_status)
+
+    p_manifest = subparsers.add_parser("manifest", help="Convert the manifest to/from JSONL")
+    manifest_sub = p_manifest.add_subparsers(dest="manifest_command", required=True)
+
+    p_export = manifest_sub.add_parser("export", help="Write a sorted, diffable JSONL snapshot")
+    _add_common_args(p_export)
+    p_export.add_argument("--to", required=True, help="Output .jsonl path")
+    p_export.set_defaults(func=cmd_manifest)
+
+    p_import = manifest_sub.add_parser("import", help="Load a JSONL snapshot into the SQLite shards")
+    _add_common_args(p_import)
+    p_import.add_argument("--from", required=True, dest="from", help="Input .jsonl path")
+    p_import.set_defaults(func=cmd_manifest)
 
     p_list = subparsers.add_parser("list-reporters", help="Fetch and print ReportersMetadata.json")
     _add_common_args(p_list)

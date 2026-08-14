@@ -7,6 +7,7 @@ function that touches YAML; everything downstream works with dataclasses.
 
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -40,11 +41,6 @@ class ConcurrencyConfig:
 @dataclass
 class ManifestConfig:
     dir: str = "./manifest"
-    format: str = "sqlite"  # sqlite | jsonl
-
-    def __post_init__(self) -> None:
-        if self.format not in ("sqlite", "jsonl"):
-            raise ConfigError(f"manifest.format must be 'sqlite' or 'jsonl', got {self.format!r}")
 
 
 @dataclass
@@ -56,7 +52,21 @@ class Config:
     concurrency: ConcurrencyConfig = field(default_factory=ConcurrencyConfig)
     http: HttpConfig = field(default_factory=HttpConfig)
     manifest: ManifestConfig = field(default_factory=ManifestConfig)
-    metadata_ttl_hours: float = 24.0
+
+
+def _build_section[T](cls: type[T], raw: dict[str, Any], where: str) -> T:
+    """Construct a config sub-section, reporting unknown keys as a
+    ConfigError rather than letting a raw TypeError escape — a typo (or a
+    key removed in a later version) should say which key and what's valid."""
+    if not isinstance(raw, dict):
+        raise ConfigError(f"Config section '{where}' must be a mapping")
+    known = {f.name for f in dataclasses.fields(cls)}
+    unknown = set(raw) - known
+    if unknown:
+        raise ConfigError(
+            f"Unknown key(s) in '{where}': {sorted(unknown)}. Valid keys: {sorted(known)}"
+        )
+    return cls(**raw)
 
 
 def _validate_formats(formats: list[str], where: str) -> None:
@@ -111,9 +121,9 @@ def load_config(path: str | Path) -> Config:
         raise ConfigError(f"Config file {path}: 'selections' must be a list")
     selections = [_build_selection(s, i) for i, s in enumerate(raw_selections)]
 
-    concurrency = ConcurrencyConfig(**raw.get("concurrency", {}))
-    http = HttpConfig(**raw.get("http", {}))
-    manifest = ManifestConfig(**raw.get("manifest", {}))
+    concurrency = _build_section(ConcurrencyConfig, raw.get("concurrency", {}), "concurrency")
+    http = _build_section(HttpConfig, raw.get("http", {}), "http")
+    manifest = _build_section(ManifestConfig, raw.get("manifest", {}), "manifest")
 
     return Config(
         version=version,
@@ -123,5 +133,4 @@ def load_config(path: str | Path) -> Config:
         concurrency=concurrency,
         http=http,
         manifest=manifest,
-        metadata_ttl_hours=float(raw.get("metadata_ttl_hours", 24.0)),
     )

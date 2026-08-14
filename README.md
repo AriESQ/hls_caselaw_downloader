@@ -57,7 +57,13 @@ uv run caselaw-mirror sync --config config/minimal.yaml
 | `plan` | Resolve selections and print the exact file list. No downloads. |
 | `verify` | Re-checksum local files against the manifest. No network. |
 | `status` | Summarize manifest state: files tracked, per-status counts, last change. |
+| `manifest export --to X.jsonl` | Write a sorted, diffable JSONL snapshot of the manifest. |
+| `manifest import --from X.jsonl` | Load a JSONL snapshot back into the SQLite shards. |
 | `list-reporters` | Fetch and print all ~400 reporters. |
+
+Common flags on every command: `--config`, `--output-dir` and `--manifest-dir` (override
+the config's paths, so one config works both in-container and locally), `--verbose`,
+`--json-logs`.
 
 ## Targeting
 
@@ -82,6 +88,12 @@ uv run caselaw-mirror sync --reporter cal --volumes 1-50 --formats json
 
 # Whole-volume tar archives (checksum-verified) for a year range
 uv run caselaw-mirror sync --reporter cal --years 1850-1900 --formats tar
+
+# Everything for a jurisdiction, PDFs only
+uv run caselaw-mirror sync --jurisdiction "N.Y." --formats case_pdf
+
+# Ignore the config's own selections and use only these flags
+uv run caselaw-mirror sync --config config/example.yaml --only --reporter bur
 ```
 
 See `config/example.yaml` for the fully commented config schema.
@@ -120,12 +132,11 @@ bounded, navigable unit — as opposed to a single file holding ~6.7M rows, or h
 thousands of per-volume shards.
 
 For a diffable, reviewable snapshot (e.g. to commit alongside a CI run), export to JSONL —
-one sorted line per file:
+one sorted line per file, so diffs are stable:
 
-```python
-from caselaw_mirror.manifest import export_jsonl, import_jsonl
-export_jsonl("./manifest", "manifest.jsonl")
-import_jsonl("manifest.jsonl", "./manifest")
+```bash
+uv run caselaw-mirror manifest export --to manifest.jsonl
+uv run caselaw-mirror manifest import --from manifest.jsonl
 ```
 
 ## Visibility

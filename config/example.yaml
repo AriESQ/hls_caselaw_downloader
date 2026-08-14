@@ -56,9 +56,6 @@ http:
   user_agent: "caselaw-mirror/0.1 (contact: you@example.com)"
 
 manifest:
+  # SQLite, sharded one file per reporter. Use `caselaw-mirror manifest
+  # export` for a diffable JSONL snapshot.
   dir: ./manifest
-  format: sqlite # sqlite (fast, day-to-day) | jsonl (diffable export target)
-
-# How long cached root/reporter metadata (ReportersMetadata.json etc.) is
-# trusted before being re-fetched on a subsequent run.
-metadata_ttl_hours: 24

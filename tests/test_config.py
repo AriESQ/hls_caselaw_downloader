@@ -30,8 +30,7 @@ class TestLoadConfig:
         assert config.concurrency.max_workers == 4
         assert config.concurrency.requests_per_second == 5.0
         assert config.http.max_retries == 5
-        assert config.manifest.format == "sqlite"
-        assert config.metadata_ttl_hours == 24.0
+        assert config.manifest.dir == "./manifest"
 
     def test_per_selection_formats_override_top_level(self, tmp_path):
         text = """
@@ -85,9 +84,22 @@ selections:
         with pytest.raises(ConfigError, match="must be a list"):
             load_config(write(tmp_path, "version: 1\nselections: {reporter: cal}\n"))
 
-    def test_invalid_manifest_format_raises(self, tmp_path):
-        with pytest.raises(ConfigError, match=r"manifest\.format"):
-            load_config(write(tmp_path, "version: 1\nmanifest:\n  format: parquet\n"))
+    def test_unknown_section_key_raises_a_helpful_error(self, tmp_path):
+        """A typo (or a key removed in a later version) must not surface as
+        a raw TypeError traceback."""
+        with pytest.raises(ConfigError, match="Unknown key"):
+            load_config(write(tmp_path, "version: 1\nmanifest:\n  frmat: sqlite\n"))
+
+    def test_error_names_the_offending_key_and_valid_keys(self, tmp_path):
+        with pytest.raises(ConfigError) as exc:
+            load_config(write(tmp_path, "version: 1\nhttp:\n  timeout: 5\n"))
+        assert "timeout" in str(exc.value)
+        assert "timeout_seconds" in str(exc.value)
+
+    @pytest.mark.parametrize("section", ["concurrency", "http", "manifest"])
+    def test_section_must_be_a_mapping(self, tmp_path, section):
+        with pytest.raises(ConfigError, match="must be a mapping"):
+            load_config(write(tmp_path, f"version: 1\n{section}: [1, 2]\n"))
 
 
 class TestShippedConfigs:

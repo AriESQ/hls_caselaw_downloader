@@ -251,3 +251,83 @@ def test_local_paths_are_created_as_needed(tmp_path):
     target = Path(tmp_path) / "cal" / "1" / "cases" / "0009-01.json"
     _atomic_write(target, BODY)
     assert target.read_bytes() == BODY
+
+
+class TestNetworkFailureHandling:
+    """Connection-level failures must be handled like HTTP errors, not crash."""
+
+    @responses.activate
+    def test_connection_error_is_reported_not_raised(self, client, manifest, tmp_path):
+        import requests as requests_lib
+
+        responses.add(responses.GET, CASE_URL, body=requests_lib.ConnectionError("no route"))
+        rf = case_file(tmp_path)
+
+        result = download_one(client, manifest, rf)
+
+        assert result.status == "failed"
+        assert not rf.local_path.exists()
+        assert manifest.get(CASE_URL).status == "http_error"
+
+    @responses.activate
+    def test_get_json_raises_on_failure(self, client):
+        responses.add(responses.GET, CASE_URL, status=500)
+        with pytest.raises(RuntimeError):
+            client.get_json(CASE_URL)
+
+    @responses.activate
+    def test_get_json_parses_success(self, client):
+        responses.add(responses.GET, CASE_URL, json={"ok": True})
+        assert client.get_json(CASE_URL) == {"ok": True}
+
+    def test_client_works_as_a_context_manager(self):
+        from caselaw_mirror.config import HttpConfig
+        from caselaw_mirror.http_client import HttpClient
+
+        with HttpClient(HttpConfig(), requests_per_second=0) as c:
+            assert c is not None
+
+
+class TestTarChecksumUnavailable:
+    """A missing/unparseable .tar.sha256 should warn and still save the tar,
+    not fail the download — the checksum is a bonus, not a precondition."""
+
+    @responses.activate
+    def test_missing_sha256_file_still_downloads(self, client, manifest, tmp_path):
+        responses.add(responses.GET, TAR_URL, body=b"tar bytes", status=200)
+        responses.add(responses.GET, TAR_URL + ".sha256", status=404)
+        rf = RemoteFile(url=TAR_URL, local_path=tmp_path / "1.tar", format="tar")
+
+        result = download_one(client, manifest, rf)
+
+        assert result.status == "downloaded"
+        assert rf.local_path.exists()
+        assert manifest.get(TAR_URL).sha256 is None
+
+    @responses.activate
+    def test_unparseable_sha256_file_still_downloads(self, client, manifest, tmp_path):
+        responses.add(responses.GET, TAR_URL, body=b"tar bytes", status=200)
+        responses.add(responses.GET, TAR_URL + ".sha256", body=b"not-a-digest", status=200)
+        rf = RemoteFile(url=TAR_URL, local_path=tmp_path / "1.tar", format="tar")
+
+        assert download_one(client, manifest, rf).status == "downloaded"
+
+
+class TestRemoteIndexCache:
+    def test_clear_cache_forces_refetch(self, reporters_metadata):
+        from caselaw_mirror.remote_index import RemoteIndex
+
+        calls = []
+
+        def fetch(url):
+            calls.append(url)
+            return reporters_metadata
+
+        index = RemoteIndex(fetch)
+        index.get_reporters()
+        index.get_reporters()
+        assert len(calls) == 1  # cached within a run
+
+        index.clear_cache()
+        index.get_reporters()
+        assert len(calls) == 2

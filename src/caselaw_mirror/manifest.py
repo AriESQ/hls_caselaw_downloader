@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Protocol, Self
@@ -80,22 +81,33 @@ def shard_key_for_url(url: str) -> str:
 
 
 class SqliteManifestShard:
-    """A single reporter's (or `_root`'s) manifest, backed by one SQLite file."""
+    """A single reporter's (or `_root`'s) manifest, backed by one SQLite file.
+
+    The downloader writes from a ThreadPoolExecutor, so every connection use
+    is serialized by `self._lock`. `check_same_thread=False` only disables
+    sqlite3's ownership *check* — it provides no locking of its own, and
+    concurrent use of one connection without it raises
+    `sqlite3.InterfaceError: bad parameter or other API misuse`.
+    """
 
     def __init__(self, db_path: Path):
         self._db_path = db_path
         db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.Lock()
         self._conn = sqlite3.connect(db_path, check_same_thread=False)
-        self._conn.executescript(_SCHEMA)
-        self._conn.commit()
+        with self._lock:
+            self._conn.executescript(_SCHEMA)
+            self._conn.commit()
 
     def close(self) -> None:
-        self._conn.close()
+        with self._lock:
+            self._conn.close()
 
     def get(self, url: str) -> ManifestEntry | None:
-        row = self._conn.execute(
-            f"SELECT {', '.join(_ENTRY_FIELDS)} FROM files WHERE url = ?", (url,)
-        ).fetchone()
+        with self._lock:
+            row = self._conn.execute(
+                f"SELECT {', '.join(_ENTRY_FIELDS)} FROM files WHERE url = ?", (url,)
+            ).fetchone()
         if row is None:
             return None
         return ManifestEntry(**dict(zip(_ENTRY_FIELDS, row, strict=True)))
@@ -105,15 +117,17 @@ class SqliteManifestShard:
         columns = ", ".join(_ENTRY_FIELDS)
         placeholders = ", ".join(f":{f}" for f in _ENTRY_FIELDS)
         updates = ", ".join(f"{f} = excluded.{f}" for f in _ENTRY_FIELDS if f != "url")
-        self._conn.execute(
-            f"INSERT INTO files ({columns}) VALUES ({placeholders}) "
-            f"ON CONFLICT(url) DO UPDATE SET {updates}",
-            data,
-        )
-        self._conn.commit()
+        with self._lock:
+            self._conn.execute(
+                f"INSERT INTO files ({columns}) VALUES ({placeholders}) "
+                f"ON CONFLICT(url) DO UPDATE SET {updates}",
+                data,
+            )
+            self._conn.commit()
 
     def all_entries(self) -> list[ManifestEntry]:
-        rows = self._conn.execute(f"SELECT {', '.join(_ENTRY_FIELDS)} FROM files").fetchall()
+        with self._lock:
+            rows = self._conn.execute(f"SELECT {', '.join(_ENTRY_FIELDS)} FROM files").fetchall()
         return [ManifestEntry(**dict(zip(_ENTRY_FIELDS, row, strict=True))) for row in rows]
 
 
@@ -124,12 +138,17 @@ class ShardedManifest:
     def __init__(self, manifest_dir: str | Path):
         self._dir = Path(manifest_dir)
         self._shards: dict[str, SqliteManifestShard] = {}
+        # Guards the shard registry itself: worker threads open shards
+        # lazily, and two of them racing on the same key would otherwise
+        # create duplicate connections to one file.
+        self._shards_lock = threading.Lock()
 
     def _shard_for(self, url: str) -> SqliteManifestShard:
         key = shard_key_for_url(url)
-        if key not in self._shards:
-            self._shards[key] = SqliteManifestShard(self._dir / f"{key}.sqlite3")
-        return self._shards[key]
+        with self._shards_lock:
+            if key not in self._shards:
+                self._shards[key] = SqliteManifestShard(self._dir / f"{key}.sqlite3")
+            return self._shards[key]
 
     def get(self, url: str) -> ManifestEntry | None:
         return self._shard_for(url).get(url)
@@ -138,9 +157,10 @@ class ShardedManifest:
         self._shard_for(entry.url).upsert(entry)
 
     def close(self) -> None:
-        for shard in self._shards.values():
-            shard.close()
-        self._shards.clear()
+        with self._shards_lock:
+            for shard in self._shards.values():
+                shard.close()
+            self._shards.clear()
 
     def __enter__(self) -> Self:
         return self
@@ -157,8 +177,10 @@ class ShardedManifest:
         entries: list[ManifestEntry] = []
         for path in self.iter_shard_paths():
             key = path.stem
-            shard = self._shards.get(key) or SqliteManifestShard(path)
-            self._shards[key] = shard
+            with self._shards_lock:
+                if key not in self._shards:
+                    self._shards[key] = SqliteManifestShard(path)
+                shard = self._shards[key]
             entries.extend(shard.all_entries())
         return entries
 

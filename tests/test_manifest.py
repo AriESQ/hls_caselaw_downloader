@@ -128,3 +128,51 @@ class TestJsonlRoundTrip:
 
         written_urls = [json.loads(line)["url"] for line in lines]
         assert written_urls == sorted(written_urls)
+
+
+class TestConcurrentAccess:
+    """The downloader writes from a ThreadPoolExecutor, so the manifest must
+    tolerate concurrent use. Without locking this raises
+    sqlite3.InterfaceError: bad parameter or other API misuse."""
+
+    def test_concurrent_upserts_across_shards(self, tmp_path):
+        from concurrent.futures import ThreadPoolExecutor
+
+        reporters = ["cal", "bur", "a2d", "_root"]
+        urls = [
+            f"https://static.case.law/{r}/1/cases/{i:04d}-01.json"
+            for r in reporters
+            for i in range(40)
+        ]
+
+        with ShardedManifest(tmp_path) as m:
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                errors = [
+                    f for f in pool.map(lambda u: _try_upsert(m, u), urls) if f is not None
+                ]
+            assert errors == []
+            assert len(m.all_entries()) == len(urls)
+
+    def test_concurrent_reads_and_writes(self, tmp_path):
+        from concurrent.futures import ThreadPoolExecutor
+
+        urls = [f"https://static.case.law/cal/1/cases/{i:04d}-01.json" for i in range(60)]
+        with ShardedManifest(tmp_path) as m:
+            for u in urls[:30]:
+                m.upsert(make_entry(url=u))
+
+            def mixed(u):
+                m.get(u)
+                return _try_upsert(m, u)
+
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                errors = [f for f in pool.map(mixed, urls) if f is not None]
+            assert errors == []
+
+
+def _try_upsert(manifest, url):
+    try:
+        manifest.upsert(make_entry(url=url))
+    except Exception as e:  # noqa: BLE001 - the point is to surface any thread error
+        return f"{type(e).__name__}: {e}"
+    return None

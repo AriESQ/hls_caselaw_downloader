@@ -74,7 +74,16 @@ def _fetch_expected_tar_sha256(client: HttpClient, tar_url: str) -> str | None:
         return None
 
 
-def download_one(client: HttpClient, manifest: ManifestStore, remote_file: RemoteFile) -> DownloadResult:
+def download_one(
+    client: HttpClient, manifest: ManifestStore, remote_file: RemoteFile, dry_run: bool = False
+) -> DownloadResult:
+    """Fetch one file, verify it, and record it in the manifest.
+
+    In `dry_run` mode the manifest is never written and no bytes are ever
+    written to disk — but a conditional GET still happens (cheap for
+    already-current files: a 304 has no body), so the result accurately
+    reflects what a real `sync` would do.
+    """
     prior = manifest.get(remote_file.url)
     file_exists = remote_file.local_path.exists()
 
@@ -86,19 +95,21 @@ def download_one(client: HttpClient, manifest: ManifestStore, remote_file: Remot
     now = _now_iso()
 
     if result.status == "not_modified":
-        assert prior is not None
-        prior.last_checked_at = now
-        manifest.upsert(prior)
+        if not dry_run:
+            assert prior is not None
+            prior.last_checked_at = now
+            manifest.upsert(prior)
         logger.debug("not modified: %s", remote_file.url)
         return DownloadResult(remote_file.url, remote_file.local_path, "skipped_not_modified")
 
     if result.status == "error" or result.content is None:
-        entry = prior or ManifestEntry(
-            url=remote_file.url, local_path=str(remote_file.local_path), format=remote_file.format
-        )
-        entry.status = "http_error"
-        entry.last_checked_at = now
-        manifest.upsert(entry)
+        if not dry_run:
+            entry = prior or ManifestEntry(
+                url=remote_file.url, local_path=str(remote_file.local_path), format=remote_file.format
+            )
+            entry.status = "http_error"
+            entry.last_checked_at = now
+            manifest.upsert(entry)
         logger.warning("failed to fetch %s: %s", remote_file.url, result.error)
         return DownloadResult(remote_file.url, remote_file.local_path, "failed", error=result.error)
 
@@ -111,16 +122,21 @@ def download_one(client: HttpClient, manifest: ManifestStore, remote_file: Remot
                 checksum.verify_sha256(content, expected)
                 sha256_hex = expected
             except checksum.ChecksumMismatch as e:
-                entry = ManifestEntry(
-                    url=remote_file.url,
-                    local_path=str(remote_file.local_path),
-                    format=remote_file.format,
-                    status="checksum_failed",
-                    last_checked_at=now,
-                )
-                manifest.upsert(entry)
+                if not dry_run:
+                    entry = ManifestEntry(
+                        url=remote_file.url,
+                        local_path=str(remote_file.local_path),
+                        format=remote_file.format,
+                        status="checksum_failed",
+                        last_checked_at=now,
+                    )
+                    manifest.upsert(entry)
                 logger.error("%s", e)
                 return DownloadResult(remote_file.url, remote_file.local_path, "failed", error=str(e))
+
+    if dry_run:
+        logger.debug("would download %s (%d bytes)", remote_file.url, len(content))
+        return DownloadResult(remote_file.url, remote_file.local_path, "downloaded", size_bytes=len(content))
 
     _atomic_write(remote_file.local_path, content)
 
@@ -143,12 +159,48 @@ def download_one(client: HttpClient, manifest: ManifestStore, remote_file: Remot
     return DownloadResult(remote_file.url, remote_file.local_path, "downloaded", size_bytes=len(content))
 
 
+@dataclass
+class VerifyResult:
+    checked: int = 0
+    ok: int = 0
+    mismatched: list[str] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)
+
+
+def verify_local_files(manifest_entries: list[ManifestEntry]) -> VerifyResult:
+    """Re-checksum already-downloaded files against what the manifest recorded,
+    without any network access — catches local corruption/tampering, not
+    remote staleness (that's what `sync` itself detects via conditional GET)."""
+    result = VerifyResult()
+    for entry in manifest_entries:
+        if entry.status != "ok":
+            continue
+        result.checked += 1
+        path = Path(entry.local_path)
+        if not path.exists():
+            result.missing.append(entry.url)
+            continue
+        data = path.read_bytes()
+        if entry.sha256:
+            ok = checksum.sha256_hex(data).lower() == entry.sha256.lower()
+        elif entry.git_blob_sha1:
+            ok = checksum.git_blob_sha1(data) == entry.git_blob_sha1
+        else:
+            ok = True  # nothing to compare against
+        if ok:
+            result.ok += 1
+        else:
+            result.mismatched.append(entry.url)
+    return result
+
+
 def sync_files(
     client: HttpClient,
     manifest: ManifestStore,
     files: list[RemoteFile],
     max_workers: int = 4,
     limit: int | None = None,
+    dry_run: bool = False,
 ) -> SyncSummary:
     if limit is not None:
         files = files[:limit]
@@ -158,10 +210,10 @@ def sync_files(
     last_heartbeat_at = start
     completed = 0
 
-    logger.info("starting sync: %d files planned", len(files))
+    logger.info("starting %s: %d files planned", "dry-run" if dry_run else "sync", len(files))
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        futures = {pool.submit(download_one, client, manifest, f): f for f in files}
+        futures = {pool.submit(download_one, client, manifest, f, dry_run): f for f in files}
         for future in as_completed(futures):
             remote_file = futures[future]
             try:

@@ -1,0 +1,325 @@
+[
+  {
+    "id": 8713098,
+    "name": "JAMES D. DOTY, impleaded with DAVID JONES and ALEXANDER J. IRWIN, Pl'ff in Error. vs. MOSES M. STRONG, Def't in Error",
+    "name_abbreviation": "Doty v. Strong",
+    "decision_date": "1842-07",
+    "docket_number": "",
+    "first_page": "3",
+    "last_page": "7",
+    "citations": [
+      {
+        "type": "official",
+        "cite": "1 Bur. 3"
+      }
+    ],
+    "court": {
+      "name_abbreviation": "Wis.",
+      "id": 9671,
+      "name": "Wisconsin Supreme Court"
+    },
+    "jurisdiction": {
+      "id": 46,
+      "name_long": "Wisconsin",
+      "name": "Wis."
+    },
+    "cites_to": [
+      {
+        "cite": "6 Peters 173",
+        "category": "reporters:scotus_early",
+        "reporter": "Pet.",
+        "opinion_index": -1
+      }
+    ],
+    "analysis": {
+      "cardinality": 515,
+      "char_count": 11249,
+      "ocr_confidence": 0.44,
+      "sha256": "fe5959ab3746030d1e96ef0e22b1717ec935f0c6567a7ef039a0e926d12e59a2",
+      "simhash": "1:ee4f776d49fe33ac",
+      "word_count": 2048
+    },
+    "last_updated": "2024-02-27T21:16:24.198224+00:00",
+    "provenance": {
+      "date_added": "2019-08-29",
+      "source": "Harvard",
+      "batch": "2018"
+    },
+    "file_name": "0003-01",
+    "first_page_order": 3,
+    "last_page_order": 7
+  },
+  {
+    "id": 8713107,
+    "name": "EDMUND DAWS, pl'tff in error, vs. HORACE GLASGOW, def't in error",
+    "name_abbreviation": "Daws v. Glasgow",
+    "decision_date": "1842-07",
+    "docket_number": "",
+    "first_page": "8",
+    "last_page": "12",
+    "citations": [
+      {
+        "type": "official",
+        "cite": "1 Bur. 8"
+      }
+    ],
+    "court": {
+      "name_abbreviation": "Wis.",
+      "id": 9671,
+      "name": "Wisconsin Supreme Court"
+    },
+    "jurisdiction": {
+      "id": 46,
+      "name_long": "Wisconsin",
+      "name": "Wis."
+    },
+    "cites_to": [
+      {
+        "cite": "10 Wendell 629",
+        "category": "reporters:state",
+        "reporter": "Wend.",
+        "case_ids": [
+          2012985
+        ],
+        "opinion_index": -1,
+        "case_paths": [
+          "/wend/10/0629-01"
+        ]
+      }
+    ],
+    "analysis": {
+      "cardinality": 458,
+      "char_count": 10991,
+      "ocr_confidence": 0.481,
+      "pagerank": {
+        "raw": 4.03580807328026e-08,
+        "percentile": 0.20841330903848063
+      },
+      "sha256": "22ca3d1ced839163a686279df9fa34094610f4a14acc700d24acaec3631ed02c",
+      "simhash": "1:1e62bf30488f1f9b",
+      "word_count": 1908
+    },
+    "last_updated": "2024-02-27T21:16:24.198224+00:00",
+    "provenance": {
+      "date_added": "2019-08-29",
+      "source": "Harvard",
+      "batch": "2018"
+    },
+    "file_name": "0008-01",
+    "first_page_order": 8,
+    "last_page_order": 12
+  },
+  {
+    "id": 8713117,
+    "name": "DANIEL M. PARKISON, Pt'ff in Error, vs. CHARLES BRACKEN, Def't in Error",
+    "name_abbreviation": "Parkison v. Bracken",
+    "decision_date": "1842-07",
+    "docket_number": "",
+    "first_page": "13",
+    "last_page": "21",
+    "citations": [
+      {
+        "type": "official",
+        "cite": "1 Bur. 13"
+      }
+    ],
+    "court": {
+      "name_abbreviation": "Wis.",
+      "id": 9671,
+      "name": "Wisconsin Supreme Court"
+    },
+    "jurisdiction": {
+      "id": 46,
+      "name_long": "Wisconsin",
+      "name": "Wis."
+    },
+    "cites_to": [
+      {
+        "cite": "5 Wheat. 304",
+        "category": "reporters:scotus_early",
+        "reporter": "Wheat.",
+        "opinion_index": -1
+      },
+      {
+        "cite": "9 Cranch, 98",
+        "category": "reporters:scotus_early",
+        "reporter": "Cranch,",
+        "opinion_index": -1
+      },
+      {
+        "cite": "19 Johns. Rep. 347",
+        "category": "reporters:state",
+        "reporter": "Johns. Rep.",
+        "opinion_index": -1
+      },
+      {
+        "cite": "12 Johns. Rep. 77",
+        "category": "reporters:state",
+        "reporter": "Johns. Rep.",
+        "opinion_index": -1
+      },
+      {
+        "cite": "7 Wheat. 151",
+        "category": "reporters:scotus_early",
+        "reporter": "Wheat.",
+        "weight": 2,
+        "opinion_index": -1
+      },
+      {
+        "cite": "11 Wheat. 580",
+        "category": "reporters:scotus_early",
+        "reporter": "Wheat.",
+        "opinion_index": -1
+      },
+      {
+        "cite": "7 Wheat. 212",
+        "category": "reporters:scotus_early",
+        "reporter": "Wheat.",
+        "case_ids": [
+          1503011
+        ],
+        "opinion_index": -1,
+        "case_paths": [
+          "/us/20/0212-01"
+        ]
+      },
+      {
+        "cite": "7 Wheat. 1",
+        "category": "reporters:scotus_early",
+        "reporter": "Wheat.",
+        "case_ids": [
+          1503017
+        ],
+        "opinion_index": -1,
+        "case_paths": [
+          "/us/20/0001-01"
+        ]
+      },
+      {
+        "cite": "4 Ohio Rep. 446",
+        "category": "reporters:state",
+        "reporter": "Ohio",
+        "opinion_index": -1
+      },
+      {
+        "cite": "5 Wheat. 293",
+        "category": "reporters:scotus_early",
+        "reporter": "Wheat.",
+        "case_ids": [
+          1442079
+        ],
+        "weight": 2,
+        "opinion_index": -1,
+        "case_paths": [
+          "/us/18/0293-01"
+        ]
+      },
+      {
+        "cite": "9 Cranch, 87",
+        "category": "reporters:scotus_early",
+        "reporter": "Cranch,",
+        "case_ids": [
+          533612
+        ],
+        "opinion_index": -1,
+        "case_paths": [
+          "/us/13/0087-01"
+        ]
+      },
+      {
+        "cite": "12 John. Rep. 76",
+        "category": "reporters:state",
+        "reporter": "Johns.",
+        "opinion_index": 0
+      },
+      {
+        "cite": "10 John. Rep. 23",
+        "category": "reporters:state",
+        "reporter": "Johns.",
+        "case_ids": [
+          2135873
+        ],
+        "opinion_index": 0,
+        "case_paths": [
+          "/johns/10/0023-01"
+        ]
+      },
+      {
+        "cite": "2 Rawle, 374",
+        "category": "reporters:state",
+        "reporter": "Rawle",
+        "opinion_index": 0
+      },
+      {
+        "cite": "2 Watts, 433",
+        "category": "reporters:state",
+        "reporter": "Watts",
+        "case_ids": [
+          1840055
+        ],
+        "opinion_index": 0,
+        "case_paths": [
+          "/watts/2/0433-01"
+        ]
+      },
+      {
+        "cite": "1 Rawle, 181",
+        "category": "reporters:state",
+        "reporter": "Rawle",
+        "case_ids": [
+          1819183
+        ],
+        "opinion_index": 0,
+        "case_paths": [
+          "/rawle/1/0181-01"
+        ]
+      },
+      {
+        "cite": "1 Watts' Rep. 356",
+        "category": "reporters:state",
+        "reporter": "Watts",
+        "opinion_index": 0
+      },
+      {
+        "cite": "5 Wheat. 304",
+        "category": "reporters:scotus_early",
+        "reporter": "Wheat.",
+        "opinion_index": 0
+      },
+      {
+        "cite": "9 Cranch, 98",
+        "category": "reporters:scotus_early",
+        "reporter": "Cranch,",
+        "weight": 2,
+        "opinion_index": 0
+      },
+      {
+        "cite": "19 Johns. Rep. 347",
+        "category": "reporters:state",
+        "reporter": "Johns. Rep.",
+        "opinion_index": 0
+      }
+    ],
+    "analysis": {
+      "cardinality": 825,
+      "char_count": 21351,
+      "ocr_confidence": 0.482,
+      "pagerank": {
+        "raw": 4.03580807328026e-08,
+        "percentile": 0.20841350209992937
+      },
+      "sha256": "eea5a0089b94074d8a6c99a106fc763c834c0377619bc9c968165081adb3ca8c",
+      "simhash": "1:af42cc5fc18e97d1",
+      "word_count": 3794
+    },
+    "last_updated": "2024-02-27T21:16:24.198224+00:00",
+    "provenance": {
+      "date_added": "2019-08-29",
+      "source": "Harvard",
+      "batch": "2018"
+    },
+    "file_name": "0013-01",
+    "first_page_order": 13,
+    "last_page_order": 21
+  }
+]

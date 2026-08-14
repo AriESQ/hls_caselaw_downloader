@@ -1,0 +1,87 @@
+[
+  {
+    "id": 210,
+    "full_name": "West's Atlantic Reporter, Second Series",
+    "short_name": "A.2d",
+    "start_year": 1942,
+    "end_year": 2010,
+    "jurisdictions": [
+      {
+        "id": 56,
+        "name": "D.C.",
+        "name_long": "District of Columbia"
+      },
+      {
+        "id": 8,
+        "name": "Del.",
+        "name_long": "Delaware"
+      },
+      {
+        "id": 42,
+        "name": "Me.",
+        "name_long": "Maine"
+      },
+      {
+        "id": 6,
+        "name": "Pa.",
+        "name_long": "Pennsylvania"
+      },
+      {
+        "id": 9,
+        "name": "Regional",
+        "name_long": "Regional"
+      },
+      {
+        "id": 15,
+        "name": "R.I.",
+        "name_long": "Rhode Island"
+      },
+      {
+        "id": 39,
+        "name": "U.S.",
+        "name_long": "United States"
+      },
+      {
+        "id": 17,
+        "name": "Vt.",
+        "name_long": "Vermont"
+      }
+    ],
+    "harvard_hollis_id": [],
+    "slug": "a2d"
+  },
+  {
+    "id": 1070,
+    "full_name": "Burnett",
+    "short_name": "Bur.",
+    "start_year": 1842,
+    "end_year": 1843,
+    "jurisdictions": [
+      {
+        "id": 46,
+        "name": "Wis.",
+        "name_long": "Wisconsin"
+      }
+    ],
+    "harvard_hollis_id": [
+      "005687445"
+    ],
+    "slug": "bur"
+  },
+  {
+    "id": 414,
+    "full_name": "California Reports",
+    "short_name": "Cal.",
+    "start_year": 1803,
+    "end_year": 2006,
+    "jurisdictions": [
+      {
+        "id": 30,
+        "name": "Cal.",
+        "name_long": "California"
+      }
+    ],
+    "harvard_hollis_id": [],
+    "slug": "cal"
+  }
+]

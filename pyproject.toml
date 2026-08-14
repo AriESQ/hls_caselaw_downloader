@@ -1,7 +1,7 @@
 [project]
 name = "caselaw-mirror"
 version = "0.1.0"
-description = "Add your description here"
+description = "Mirror Harvard Caselaw Access Project bulk data from static.case.law"
 readme = "README.md"
 authors = [
     { name = "AriESQ", email = "19827230+AriESQ@users.noreply.github.com" }
@@ -25,3 +25,13 @@ dev = [
     "responses>=0.26.2",
     "ruff>=0.16.3",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B", "SIM", "RUF"]

@@ -1,0 +1,31 @@
+[
+  {
+    "volume_number": "1",
+    "title": null,
+    "publisher": "George Hyer",
+    "publication_year": 1844,
+    "start_year": 1842,
+    "end_year": 1843,
+    "series_volume_number": null,
+    "jurisdictions": [
+      {
+        "id": 46,
+        "name": "Wis.",
+        "name_long": "Wisconsin"
+      }
+    ],
+    "id": "32044078592813",
+    "harvard_hollis_id": "003930179",
+    "spine_start_year": 1842,
+    "spine_end_year": 1843,
+    "publication_city": "Madison, WI",
+    "second_part_of_id": null,
+    "redacted": false,
+    "nominative_reporter": {
+      "volume_number": null,
+      "nominative_name": "Burnett"
+    },
+    "volume_folder": "1",
+    "reporter_slug": "bur"
+  }
+]

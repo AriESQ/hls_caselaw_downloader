@@ -27,6 +27,8 @@ logger = logging.getLogger("caselaw_mirror.cli")
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--config", help="Path to a YAML config file")
+    parser.add_argument("--output-dir", help="Local mirror root (overrides config output_dir)")
+    parser.add_argument("--manifest-dir", help="Manifest directory (overrides config manifest.dir)")
     parser.add_argument("--verbose", action="store_true", help="Enable DEBUG logging")
     parser.add_argument("--json-logs", action="store_true", help="Emit structured JSON log lines")
 
@@ -64,10 +66,21 @@ def build_cli_selection(args: argparse.Namespace) -> Selection | None:
     return Selection(**kwargs)
 
 
-def _load_config_or_default(config_path: str | None) -> Config:
-    if config_path is None:
-        return Config(version=1)
-    return load_config(config_path)
+def _load_config_or_default(args: argparse.Namespace) -> Config:
+    """Load config (or an all-defaults one), then apply CLI path overrides.
+
+    The path overrides exist so a single config file works unchanged both
+    inside the container (where paths are the /data mount points) and on a
+    dev machine, without maintaining two near-identical config files.
+    """
+    config_path = getattr(args, "config", None)
+    config = Config(version=1) if config_path is None else load_config(config_path)
+
+    if getattr(args, "output_dir", None):
+        config.output_dir = args.output_dir
+    if getattr(args, "manifest_dir", None):
+        config.manifest.dir = args.manifest_dir
+    return config
 
 
 def _build_plan(config: Config, args: argparse.Namespace) -> tuple[list[RemoteFile], HttpClient]:
@@ -84,7 +97,7 @@ def _build_plan(config: Config, args: argparse.Namespace) -> tuple[list[RemoteFi
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
-    config = _load_config_or_default(args.config)
+    config = _load_config_or_default(args)
     files, client = _build_plan(config, args)
     client.close()
 
@@ -101,7 +114,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
 
 
 def cmd_sync(args: argparse.Namespace) -> int:
-    config = _load_config_or_default(args.config)
+    config = _load_config_or_default(args)
     files, client = _build_plan(config, args)
 
     manifest = ShardedManifest(config.manifest.dir)
@@ -122,7 +135,7 @@ def cmd_sync(args: argparse.Namespace) -> int:
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
-    config = _load_config_or_default(args.config)
+    config = _load_config_or_default(args)
     manifest = ShardedManifest(config.manifest.dir)
     try:
         entries = manifest.all_entries()
@@ -146,8 +159,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
 
 def cmd_status(args: argparse.Namespace) -> int:
-    config = _load_config_or_default(args.config)
-    manifest_dir = args.manifest or config.manifest.dir
+    config = _load_config_or_default(args)
+    manifest_dir = config.manifest.dir
     manifest = ShardedManifest(manifest_dir)
     try:
         entries = manifest.all_entries()
@@ -176,7 +189,7 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 
 def cmd_list_reporters(args: argparse.Namespace) -> int:
-    config = _load_config_or_default(args.config)
+    config = _load_config_or_default(args)
     client = HttpClient(config.http, requests_per_second=config.concurrency.requests_per_second)
     try:
         index = RemoteIndex(client.get_json)
@@ -212,7 +225,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_status = subparsers.add_parser("status", help="Summarize manifest state")
     _add_common_args(p_status)
-    p_status.add_argument("--manifest", help="Manifest directory (overrides --config)")
     p_status.set_defaults(func=cmd_status)
 
     p_list = subparsers.add_parser("list-reporters", help="Fetch and print ReportersMetadata.json")

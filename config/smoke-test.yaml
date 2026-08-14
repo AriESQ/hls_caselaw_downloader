@@ -1,0 +1,22 @@
+# Deliberately tiny scope for end-to-end verification.
+#
+# `bur` (Burnett, 1842-1843) is the smallest reporter available: a single
+# volume containing 38 cases. JSON only, so a full smoke-test sync is a
+# few dozen small files rather than anything approaching the ~6.7M-case
+# corpus. Paths point at the container mount points used by
+# scripts/podman-run.sh; override with --config for bare local runs.
+version: 1
+
+output_dir: /data/mirror
+
+selections:
+  - reporter: bur
+    volumes: "1"
+    formats: [json]
+
+concurrency:
+  max_workers: 2
+  requests_per_second: 3
+
+manifest:
+  dir: /data/manifest

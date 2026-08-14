@@ -1,0 +1,9 @@
+# Smallest useful config: one reporter, JSON only, all defaults elsewhere.
+version: 1
+
+output_dir: ./mirror
+
+selections:
+  - reporter: cal
+    volumes: "1"
+    formats: [json]

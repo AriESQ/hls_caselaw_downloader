@@ -1,0 +1,64 @@
+# caselaw-mirror config — full-featured reference.
+#
+# Data source: https://static.case.law/ (Harvard Caselaw Access Project
+# bulk data, CC0). No API key or auth needed — everything here is plain
+# HTTPS GETs against published static files.
+version: 1
+
+# Local mirror root. Mirrors static.case.law's own layout 1:1 underneath
+# this directory (see src/caselaw_mirror/layout.py).
+output_dir: ./mirror
+
+# Default formats for any selection below that doesn't override them.
+#   json        - cases/<stem>.json      (full case text, self-contained)
+#   html        - html/<stem>.html
+#   case_pdf    - case-pdfs/<stem>.pdf   (per-case PDF)
+#   volume_pdf  - <volume>.pdf           (whole-volume PDF, sibling of the volume dir)
+#   zip         - <volume>.zip           (whole-volume archive)
+#   tar         - <volume>.tar           (whole-volume archive; verified against
+#                                          the published <volume>.tar.sha256 on download)
+#   tar_csv     - <volume>.tar.csv       (per-file manifest of the tar)
+#   tar_sha256  - <volume>.tar.sha256    (published checksum for the tar)
+formats:
+  - json
+
+# One or more targeting rules. Each is resolved independently and merged
+# (deduplicated by URL) into a single sync plan.
+selections:
+  # Whole reporter, a volume range, JSON only (inherits top-level `formats`).
+  - reporter: cal
+    volumes: "1-50"
+
+  # A single case, in two formats, overriding the top-level default.
+  - reporter: cal
+    volumes: "1"
+    cases: ["0009-01"]
+    formats: [json, case_pdf]
+
+  # Everything for a jurisdiction, PDFs only.
+  - jurisdiction: "N.Y."
+    formats: [case_pdf]
+    years: "1850-1900"
+
+  # Explicit "mirror everything" — reporter: all is never an implicit
+  # default, it must be spelled out.
+  # - reporter: all
+  #   formats: [json]
+
+concurrency:
+  max_workers: 4
+  requests_per_second: 5
+
+http:
+  timeout_seconds: 30
+  max_retries: 5
+  backoff_factor: 1.5
+  user_agent: "caselaw-mirror/0.1 (contact: you@example.com)"
+
+manifest:
+  dir: ./manifest
+  format: sqlite # sqlite (fast, day-to-day) | jsonl (diffable export target)
+
+# How long cached root/reporter metadata (ReportersMetadata.json etc.) is
+# trusted before being re-fetched on a subsequent run.
+metadata_ttl_hours: 24

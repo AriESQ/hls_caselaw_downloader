@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# runtime output — never committed, mirror is far too large for git
+/mirror/
+/manifest/*.sqlite3
+/manifest/*.sqlite3-*
+
+# local scratch
+*.part

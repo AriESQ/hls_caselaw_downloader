@@ -1,6 +1,6 @@
 import pytest
 
-from caselaw_mirror.manifest import (
+from hls_caselaw_downloader.manifest import (
     ManifestEntry,
     ShardedManifest,
     export_jsonl,

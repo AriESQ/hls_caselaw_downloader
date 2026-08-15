@@ -1,6 +1,6 @@
 import pytest
 
-from caselaw_mirror.config import ConfigError, load_config
+from hls_caselaw_downloader.config import ConfigError, load_config
 
 VALID = """
 version: 1

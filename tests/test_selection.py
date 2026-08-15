@@ -1,6 +1,6 @@
 import pytest
 
-from caselaw_mirror.selection import (
+from hls_caselaw_downloader.selection import (
     Selection,
     SelectionError,
     parse_range_expr,

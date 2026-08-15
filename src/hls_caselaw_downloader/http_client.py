@@ -21,7 +21,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from caselaw_mirror.config import HttpConfig
+from hls_caselaw_downloader.config import HttpConfig
 
 
 class RateLimiter:

@@ -5,12 +5,12 @@ from pathlib import Path
 import pytest
 import responses
 
-from caselaw_mirror.checksum import git_blob_sha1, sha256_hex
-from caselaw_mirror.config import HttpConfig
-from caselaw_mirror.downloader import download_one, sync_files, verify_local_files
-from caselaw_mirror.http_client import HttpClient
-from caselaw_mirror.manifest import ManifestEntry, ShardedManifest
-from caselaw_mirror.planner import RemoteFile
+from hls_caselaw_downloader.checksum import git_blob_sha1, sha256_hex
+from hls_caselaw_downloader.config import HttpConfig
+from hls_caselaw_downloader.downloader import download_one, sync_files, verify_local_files
+from hls_caselaw_downloader.http_client import HttpClient
+from hls_caselaw_downloader.manifest import ManifestEntry, ShardedManifest
+from hls_caselaw_downloader.planner import RemoteFile
 
 CASE_URL = "https://static.case.law/cal/1/cases/0009-01.json"
 TAR_URL = "https://static.case.law/cal/1.tar"
@@ -226,7 +226,7 @@ class TestVerifyLocalFiles:
 
 class TestRateLimiter:
     def test_zero_rate_disables_throttling(self):
-        from caselaw_mirror.http_client import RateLimiter
+        from hls_caselaw_downloader.http_client import RateLimiter
 
         limiter = RateLimiter(0)
         limiter.acquire()
@@ -235,7 +235,7 @@ class TestRateLimiter:
     def test_enforces_minimum_interval(self):
         import time
 
-        from caselaw_mirror.http_client import RateLimiter
+        from hls_caselaw_downloader.http_client import RateLimiter
 
         limiter = RateLimiter(50)  # 20ms apart
         start = time.monotonic()
@@ -246,7 +246,7 @@ class TestRateLimiter:
 
 def test_local_paths_are_created_as_needed(tmp_path):
     """Nested case dirs (cal/1/cases/) don't exist before the first write."""
-    from caselaw_mirror.downloader import _atomic_write
+    from hls_caselaw_downloader.downloader import _atomic_write
 
     target = Path(tmp_path) / "cal" / "1" / "cases" / "0009-01.json"
     _atomic_write(target, BODY)
@@ -281,8 +281,8 @@ class TestNetworkFailureHandling:
         assert client.get_json(CASE_URL) == {"ok": True}
 
     def test_client_works_as_a_context_manager(self):
-        from caselaw_mirror.config import HttpConfig
-        from caselaw_mirror.http_client import HttpClient
+        from hls_caselaw_downloader.config import HttpConfig
+        from hls_caselaw_downloader.http_client import HttpClient
 
         with HttpClient(HttpConfig(), requests_per_second=0) as c:
             assert c is not None
@@ -315,7 +315,7 @@ class TestTarChecksumUnavailable:
 
 class TestRemoteIndexCache:
     def test_clear_cache_forces_refetch(self, reporters_metadata):
-        from caselaw_mirror.remote_index import RemoteIndex
+        from hls_caselaw_downloader.remote_index import RemoteIndex
 
         calls = []
 

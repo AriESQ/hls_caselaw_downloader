@@ -12,17 +12,17 @@ import logging
 import sys
 from pathlib import Path
 
-from caselaw_mirror import exit_codes
-from caselaw_mirror.config import Config, ConfigError, load_config
-from caselaw_mirror.downloader import sync_files, verify_local_files
-from caselaw_mirror.http_client import HttpClient
-from caselaw_mirror.logging_setup import configure_logging
-from caselaw_mirror.manifest import ShardedManifest, export_jsonl, import_jsonl
-from caselaw_mirror.planner import RemoteFile, plan_all, reporter_in_jurisdiction
-from caselaw_mirror.remote_index import RemoteIndex
-from caselaw_mirror.selection import Selection, SelectionError, resolve_selections
+from hls_caselaw_downloader import exit_codes
+from hls_caselaw_downloader.config import Config, ConfigError, load_config
+from hls_caselaw_downloader.downloader import sync_files, verify_local_files
+from hls_caselaw_downloader.http_client import HttpClient
+from hls_caselaw_downloader.logging_setup import configure_logging
+from hls_caselaw_downloader.manifest import ShardedManifest, export_jsonl, import_jsonl
+from hls_caselaw_downloader.planner import RemoteFile, plan_all, reporter_in_jurisdiction
+from hls_caselaw_downloader.remote_index import RemoteIndex
+from hls_caselaw_downloader.selection import Selection, SelectionError, resolve_selections
 
-logger = logging.getLogger("caselaw_mirror.cli")
+logger = logging.getLogger("hls_caselaw_downloader.cli")
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -258,7 +258,7 @@ def cmd_list_jurisdictions(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="caselaw-mirror", description="Mirror CAP bulk data from static.case.law")
+    parser = argparse.ArgumentParser(prog="hls_caselaw_downloader", description="Mirror CAP bulk data from static.case.law")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     p_sync = subparsers.add_parser("sync", help="Download planned files, skipping unchanged ones")

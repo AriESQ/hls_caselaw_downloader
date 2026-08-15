@@ -1,5 +1,5 @@
 [project]
-name = "caselaw-mirror"
+name = "hls_caselaw_downloader"
 version = "0.1.0"
 description = "Mirror Harvard Caselaw Access Project bulk data from static.case.law"
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-caselaw-mirror = "caselaw_mirror:main"
+hls_caselaw_downloader = "hls_caselaw_downloader:main"
 
 [build-system]
 requires = ["uv_build>=0.11.24,<0.12.0"]

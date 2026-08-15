@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from caselaw_mirror import layout
+from hls_caselaw_downloader import layout
 
 OUTPUT_DIR = Path("/data/mirror")
 

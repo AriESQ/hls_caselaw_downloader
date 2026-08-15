@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run caselaw-mirror in a container, forwarding all arguments through.
+# Run hls_caselaw_downloader in a container, forwarding all arguments through.
 #
 #   ./scripts/podman-run.sh plan --config /config/minimal.yaml
 #   ./scripts/podman-run.sh sync --config /config/smoke-test.yaml
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="${CASELAW_MIRROR_IMAGE:-caselaw-mirror:latest}"
+IMAGE="${HLS_CASELAW_DOWNLOADER_IMAGE:-hls_caselaw_downloader:latest}"
 
 mkdir -p "$REPO_ROOT/mirror" "$REPO_ROOT/manifest"
 

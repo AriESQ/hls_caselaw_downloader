@@ -11,9 +11,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from caselaw_mirror import layout
-from caselaw_mirror.remote_index import RemoteIndex, Reporter, Volume
-from caselaw_mirror.selection import Selection, SelectionError
+from hls_caselaw_downloader import layout
+from hls_caselaw_downloader.remote_index import RemoteIndex, Reporter, Volume
+from hls_caselaw_downloader.selection import Selection, SelectionError
 
 CASE_FORMATS = frozenset(layout.CASE_FORMAT_DIRS)
 VOLUME_BULK_FORMATS = frozenset(layout.VOLUME_BULK_EXTS)

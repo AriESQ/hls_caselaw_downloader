@@ -15,12 +15,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-from caselaw_mirror import checksum
-from caselaw_mirror.http_client import HttpClient
-from caselaw_mirror.manifest import ManifestEntry, ManifestStore
-from caselaw_mirror.planner import RemoteFile
+from hls_caselaw_downloader import checksum
+from hls_caselaw_downloader.http_client import HttpClient
+from hls_caselaw_downloader.manifest import ManifestEntry, ManifestStore
+from hls_caselaw_downloader.planner import RemoteFile
 
-logger = logging.getLogger("caselaw_mirror.downloader")
+logger = logging.getLogger("hls_caselaw_downloader.downloader")
 
 HEARTBEAT_EVERY_FILES = 25
 HEARTBEAT_EVERY_SECONDS = 10.0

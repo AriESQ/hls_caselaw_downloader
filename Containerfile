@@ -24,6 +24,6 @@ USER caselaw
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-ENTRYPOINT ["python", "-m", "caselaw_mirror"]
+ENTRYPOINT ["python", "-m", "hls_caselaw_downloader"]
 # A bare `podman run` should be self-documenting rather than an arg error.
 CMD ["--help"]

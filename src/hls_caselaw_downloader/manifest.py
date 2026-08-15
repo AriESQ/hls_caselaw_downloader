@@ -71,7 +71,7 @@ ROOT_SHARD_NAME = "_root"
 def shard_key_for_url(url: str) -> str:
     """First path segment of a static.case.law URL: the reporter slug, or
     `_root` for the handful of top-level metadata files."""
-    from caselaw_mirror.layout import ROOT_METADATA_FILES
+    from hls_caselaw_downloader.layout import ROOT_METADATA_FILES
 
     path = urlparse(url).path.lstrip("/")
     first_segment = path.split("/", 1)[0] if path else ""

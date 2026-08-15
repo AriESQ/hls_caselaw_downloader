@@ -10,9 +10,9 @@ import json
 import pytest
 import responses
 
-from caselaw_mirror import exit_codes
-from caselaw_mirror.cli import build_cli_selection, build_parser, main
-from caselaw_mirror.manifest import ManifestEntry, ShardedManifest
+from hls_caselaw_downloader import exit_codes
+from hls_caselaw_downloader.cli import build_cli_selection, build_parser, main
+from hls_caselaw_downloader.manifest import ManifestEntry, ShardedManifest
 
 CASE_URL = "https://static.case.law/bur/1/cases/0003-01.json"
 BODY = b'{"id": 1, "name": "A v. B"}'
@@ -151,7 +151,7 @@ class TestExitCodes:
         def boom(*a, **kw):
             raise RuntimeError("kaboom")
 
-        monkeypatch.setattr("caselaw_mirror.cli.ShardedManifest", boom)
+        monkeypatch.setattr("hls_caselaw_downloader.cli.ShardedManifest", boom)
         assert main(["status", "--manifest-dir", str(tmp_path)]) == exit_codes.FATAL
 
 

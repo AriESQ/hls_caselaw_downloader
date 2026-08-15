@@ -27,7 +27,7 @@ class JsonFormatter(logging.Formatter):
 
 
 def configure_logging(verbose: bool = False, json_logs: bool = False) -> None:
-    root = logging.getLogger("caselaw_mirror")
+    root = logging.getLogger("hls_caselaw_downloader")
     root.setLevel(logging.DEBUG if verbose else logging.INFO)
     root.handlers.clear()
 

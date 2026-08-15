@@ -14,8 +14,8 @@ from typing import Any
 
 import yaml
 
-from caselaw_mirror.layout import ALL_FORMATS
-from caselaw_mirror.selection import DEFAULT_FORMATS, Selection, SelectionError
+from hls_caselaw_downloader.layout import ALL_FORMATS
+from hls_caselaw_downloader.selection import DEFAULT_FORMATS, Selection, SelectionError
 
 SUPPORTED_CONFIG_VERSION = 1
 
@@ -29,7 +29,7 @@ class HttpConfig:
     timeout_seconds: int = 30
     max_retries: int = 5
     backoff_factor: float = 1.5
-    user_agent: str = "caselaw-mirror/0.1"
+    user_agent: str = "hls_caselaw_downloader/0.1"
 
 
 @dataclass

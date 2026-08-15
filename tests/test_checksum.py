@@ -2,7 +2,7 @@ import subprocess
 
 import pytest
 
-from caselaw_mirror.checksum import (
+from hls_caselaw_downloader.checksum import (
     ChecksumMismatch,
     git_blob_sha1,
     parse_sha256sum_file,

@@ -1,4 +1,4 @@
-# caselaw-mirror
+# hls_caselaw_downloader
 
 Mirror [Harvard's Caselaw Access Project](https://case.law/) (CAP) bulk data from
 `static.case.law`, at whatever granularity you need — a single case, a volume range, a
@@ -41,8 +41,8 @@ corresponds 1:1 to the source URL.
 
 ```bash
 # Bare (uv handles the venv; nothing is installed globally)
-uv run caselaw-mirror plan --reporter bur --volumes 1 --formats json
-uv run caselaw-mirror sync --config config/minimal.yaml
+uv run hls_caselaw_downloader plan --reporter bur --volumes 1 --formats json
+uv run hls_caselaw_downloader sync --config config/minimal.yaml
 
 # Containerized (Podman)
 ./scripts/podman-build.sh
@@ -75,7 +75,7 @@ published index files and print them.
 Start at the jurisdiction level to size the corpus:
 
 ```bash
-uv run caselaw-mirror list-jurisdictions
+uv run hls_caselaw_downloader list-jurisdictions
 ```
 ```
 NAME         LONG NAME                    REPORTERS   VOLUMES      CASES
@@ -89,7 +89,7 @@ The `NAME` column is exactly what `--jurisdiction` / `jurisdiction:` matches (th
 works too, case-insensitively). Then drill into the reporters of one:
 
 ```bash
-uv run caselaw-mirror list-reporters --jurisdiction "Wis."
+uv run hls_caselaw_downloader list-reporters --jurisdiction "Wis."
 ```
 ```
 bur                  1842-1843  Burnett
@@ -117,8 +117,8 @@ selection and prints the exact file list without touching the network beyond met
 `sync --dry-run` reports what would change without writing:
 
 ```bash
-uv run caselaw-mirror plan --reporter wis --formats json | wc -l
-uv run caselaw-mirror sync --jurisdiction "Wis." --formats tar --dry-run
+uv run hls_caselaw_downloader plan --reporter wis --formats json | wc -l
+uv run hls_caselaw_downloader sync --jurisdiction "Wis." --formats tar --dry-run
 ```
 
 ## Targeting
@@ -137,19 +137,19 @@ the config's selections; `--only` replaces them instead).
 
 ```bash
 # One specific case, JSON and PDF
-uv run caselaw-mirror sync --reporter cal --volumes 1 --cases 0009-01 --formats json,case_pdf
+uv run hls_caselaw_downloader sync --reporter cal --volumes 1 --cases 0009-01 --formats json,case_pdf
 
 # A volume range of one reporter
-uv run caselaw-mirror sync --reporter cal --volumes 1-50 --formats json
+uv run hls_caselaw_downloader sync --reporter cal --volumes 1-50 --formats json
 
 # Whole-volume tar archives (checksum-verified) for a year range
-uv run caselaw-mirror sync --reporter cal --years 1850-1900 --formats tar
+uv run hls_caselaw_downloader sync --reporter cal --years 1850-1900 --formats tar
 
 # Everything for a jurisdiction, PDFs only
-uv run caselaw-mirror sync --jurisdiction "N.Y." --formats case_pdf
+uv run hls_caselaw_downloader sync --jurisdiction "N.Y." --formats case_pdf
 
 # Ignore the config's own selections and use only these flags
-uv run caselaw-mirror sync --config config/example.yaml --only --reporter bur
+uv run hls_caselaw_downloader sync --config config/example.yaml --only --reporter bur
 ```
 
 See `config/example.yaml` for the fully commented config schema.
@@ -191,8 +191,8 @@ For a diffable, reviewable snapshot (e.g. to commit alongside a CI run), export 
 one sorted line per file, so diffs are stable:
 
 ```bash
-uv run caselaw-mirror manifest export --to manifest.jsonl
-uv run caselaw-mirror manifest import --from manifest.jsonl
+uv run hls_caselaw_downloader manifest export --to manifest.jsonl
+uv run hls_caselaw_downloader manifest import --from manifest.jsonl
 ```
 
 ## Visibility
@@ -200,9 +200,9 @@ uv run caselaw-mirror manifest import --from manifest.jsonl
 Long syncs log a periodic heartbeat so a stalled run is distinguishable from a slow one:
 
 ```
-INFO caselaw_mirror.downloader: starting sync: 45 files planned
-INFO caselaw_mirror.downloader: progress: 25/45 done (downloaded=25 skipped=0 failed=0) — elapsed 8s
-INFO caselaw_mirror.downloader: sync finished: 45/45 downloaded, 0 skipped, 0 failed, 31307144 bytes, 15.1s
+INFO hls_caselaw_downloader.downloader: starting sync: 45 files planned
+INFO hls_caselaw_downloader.downloader: progress: 25/45 done (downloaded=25 skipped=0 failed=0) — elapsed 8s
+INFO hls_caselaw_downloader.downloader: sync finished: 45/45 downloaded, 0 skipped, 0 failed, 31307144 bytes, 15.1s
 ```
 
 Log lines are append-only (no terminal redraw), which keeps them readable in captured CI

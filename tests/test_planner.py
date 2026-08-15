@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from caselaw_mirror.planner import plan_all, plan_selection
-from caselaw_mirror.remote_index import RemoteIndex
-from caselaw_mirror.selection import Selection, SelectionError
+from hls_caselaw_downloader.planner import plan_all, plan_selection
+from hls_caselaw_downloader.remote_index import RemoteIndex
+from hls_caselaw_downloader.selection import Selection, SelectionError
 
 OUTPUT_DIR = Path("/data/mirror")
 

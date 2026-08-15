@@ -1,4 +1,4 @@
-# caselaw-mirror config — full-featured reference.
+# hls_caselaw_downloader config — full-featured reference.
 #
 # Data source: https://static.case.law/ (Harvard Caselaw Access Project
 # bulk data, CC0). No API key or auth needed — everything here is plain
@@ -6,7 +6,7 @@
 version: 1
 
 # Local mirror root. Mirrors static.case.law's own layout 1:1 underneath
-# this directory (see src/caselaw_mirror/layout.py).
+# this directory (see src/hls_caselaw_downloader/layout.py).
 output_dir: ./mirror
 
 # Default formats for any selection below that doesn't override them.
@@ -53,9 +53,9 @@ http:
   timeout_seconds: 30
   max_retries: 5
   backoff_factor: 1.5
-  user_agent: "caselaw-mirror/0.1 (contact: you@example.com)"
+  user_agent: "hls_caselaw_downloader/0.1 (contact: you@example.com)"
 
 manifest:
-  # SQLite, sharded one file per reporter. Use `caselaw-mirror manifest
+  # SQLite, sharded one file per reporter. Use `hls_caselaw_downloader manifest
   # export` for a diffable JSONL snapshot.
   dir: ./manifest
